@@ -1,6 +1,6 @@
 """
 AI Soccer Forward 1 Agent (Memory) — Controls ONLY player 3 (Forward 1, left striker).
-Uses Strands SDK + Claude Opus 4.7 + AgentCore Memory for cross-tick recall.
+Uses Strands SDK + Claude Haiku 4.5 + AgentCore Memory for cross-tick recall.
 """
 
 import os, sys; sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "lib")); sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "lib"))
@@ -76,7 +76,7 @@ Return ONLY the JSON array, no text before or after."""
 
 fallback_commands = build_fallback(FWD1_CONFIG)
 
-agent = create_memory_agent(SYSTEM_PROMPT, MY_PLAYER_ID, POSITION_LABEL, model_id="us.anthropic.claude-opus-4-7")
+agent = create_memory_agent(SYSTEM_PROMPT, MY_PLAYER_ID, POSITION_LABEL, model_id="us.anthropic.claude-haiku-4-5-20251001-v1:0")
 create_invoke_handler(
     app, agent, MY_PLAYER_ID, POSITION_LABEL, fallback_commands,
     fallback_cfg=FWD1_CONFIG,
