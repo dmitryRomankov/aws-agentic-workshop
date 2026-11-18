@@ -23,7 +23,8 @@ import math
 from state import _player_idx, _is_my_team, _resolve_holder, holder_is_me, dist
 
 OPEN_DIST = 10.0        # a teammate is "open" if no opponent is this close
-SHOOT_RANGE = 30.0      # max distance to the opponent goal for SHOOT
+SHOOT_RANGE = 36.0      # max distance to the opponent goal for SHOOT (at 30 it blocked shots from 32-36)
+ATTACK_LINE = 10.0      # a forward past this (toward-opponent x) never passes backward
 OWN_THIRD = -18.0       # toward-opponent x below this = our defensive third
 GOAL_X = 55.0
 DRIBBLE_STEP = 15.0
@@ -120,10 +121,11 @@ def _rule_gk_distribution(v: _View, c: dict):
                  f"{tid} ({'open' if open_ else 'least marked'}, nearest opp {v.nearest_opp(target):.0f})")
 
 
-def _pass_or_dribble(v: _View, c: dict):
-    """Best forward option for a player on the ball."""
+def _pass_or_dribble(v: _View, c: dict, ahead_only: bool = False):
+    """Best forward option for a player on the ball. With ahead_only, only a
+    teammate further upfield is considered; otherwise dribble toward goal."""
     own_third = v.adv(v.me) < OWN_THIRD
-    target = v.best_open_ahead() or v.nearest_open()
+    target = v.best_open_ahead() if ahead_only else (v.best_open_ahead() or v.nearest_open())
     if target is not None:
         ptype = "AERIAL" if own_third else "GROUND"
         return _cmd(c, "PASS", {"target_player_id": _player_idx(target), "type": ptype}), \
@@ -140,7 +142,10 @@ def _rule_shooting(v: _View, c: dict):
     d = v.dist_to_opp_goal(v.me)
     if v.pid not in (0, 1) and d <= SHOOT_RANGE:
         return None, None
-    new, what = _pass_or_dribble(v, c)
+    # A forward in the attacking half keeps the attack going instead of
+    # passing back to the defender (3 of 4 blocked shots went to player 1).
+    ahead_only = v.pid in (3, 4) and v.adv(v.me) >= ATTACK_LINE
+    new, what = _pass_or_dribble(v, c, ahead_only=ahead_only)
     why = "GK/DEF may not shoot" if v.pid in (0, 1) else f"SHOOT from {d:.0f} > {SHOOT_RANGE:.0f}"
     return new, f"{why} -> {what}"
 

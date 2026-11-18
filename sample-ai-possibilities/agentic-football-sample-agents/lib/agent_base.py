@@ -91,7 +91,9 @@ def _empty_tick_commands(fallback_fn, game_state: dict, team_id: int, pid: int) 
     if pid == 0:
         my_goal_x, _ = get_goal_positions(team_id)
         return [{"commandType": "MOVE_TO", "playerId": 0, "teamId": team_id, "duration": 0,
-                 "parameters": {"target_x": round(my_goal_x * 0.95, 1), "target_y": 0.0, "sprint": False}}]
+                 # 3 units in front of the goal line, same spot the GK leash uses
+                 "parameters": {"target_x": my_goal_x - 3.0 if my_goal_x > 0 else my_goal_x + 3.0,
+                                "target_y": 0.0, "sprint": False}}]
     return fallback_fn(game_state, team_id, pid)
 
 

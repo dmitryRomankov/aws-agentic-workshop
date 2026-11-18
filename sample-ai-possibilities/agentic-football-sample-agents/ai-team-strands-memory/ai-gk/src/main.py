@@ -44,6 +44,7 @@ You have MEMORY of previous ticks. Use recalled history to:
 - GK_DISTRIBUTE ONLY when hasBall=True. Never otherwise — the server ignores it and you are out of position.
 - Opponent has the ball ("held by OPP"): stay on your line. MOVE_TO 2 units in front of your goal (toward the field), y = the ball's y limited to -6..6, sprint=false.
 - Never go more than 12 units from your goal unless the ball is "free" and closer to you than to any opponent.
+- MOVE_TO always needs target_x, target_y and sprint INSIDE "parameters", e.g. {{"commandType":"MOVE_TO","playerId":{MY_PLAYER_ID},"parameters":{{"target_x":X,"target_y":Y,"sprint":false}},"duration":0}} with X and Y as numbers near YOUR goal. Never put target_x at the top level and never leave parameters empty.
 ## Available Commands (commandType → parameters)
 
 ONE-SHOT:

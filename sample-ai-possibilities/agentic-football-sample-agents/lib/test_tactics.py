@@ -74,6 +74,34 @@ def test_shot_in_range_is_kept():
     print("=== SHOOT: 20.6 from goal kept ===")
 
 
+def test_shot_from_34_is_kept():
+    # match ef253aed: FWD1 at x=21 had its shot turned into a pass back to DEF
+    s = _state(home={0: (-55, 0), 1: (-30, 0), 2: (0, 0), 3: (21, 3), 4: (10, -10)},
+               away={0: (52, 0), 1: (35, 5), 2: (30, 0), 3: (10, 10), 4: (5, 5)}, holder=("home", 3))
+    orig = _c("SHOOT", 3, HOME, aim_location="TR", power=0.9)
+    cmds, why = apply_tactics(orig, s, HOME, 3)
+    assert cmds is orig and why == [], (cmds, why)
+    print("=== SHOOT: 34 from goal kept ===")
+
+
+def test_forward_out_of_range_never_passes_back():
+    # 43 from goal, only open teammates are behind -> dribble, not a back pass to DEF
+    s = _state(home={0: (-55, 0), 1: (-30, 0), 2: (-5, 20), 3: (12, 0), 4: (5, -20)},
+               away={0: (52, 0), 1: (30, 0), 2: (25, 5), 3: (40, 10), 4: (40, -10)}, holder=("home", 3))
+    cmds, why = apply_tactics(_c("SHOOT", 3, HOME, aim_location="CENTER", power=0.9), s, HOME, 3)
+    assert cmds[0]["commandType"] == "MOVE_TO" and cmds[0]["parameters"]["target_x"] > 12, cmds
+    assert "SHOOT from 43" in why[0] and "dribble" in why[0], why
+    print("=== SHOOT: forward at 43 dribbles instead of passing back ===")
+
+
+def test_forward_out_of_range_passes_to_open_teammate_ahead():
+    s = _state(home={0: (-55, 0), 1: (-30, 0), 2: (-5, 20), 3: (12, 0), 4: (25, -20)},
+               away={0: (52, 0), 1: (30, 0), 2: (25, 5), 3: (40, 10), 4: (40, 10)}, holder=("home", 3))
+    cmds, _ = apply_tactics(_c("SHOOT", 3, HOME, aim_location="CENTER", power=0.9), s, HOME, 3)
+    assert cmds[0]["commandType"] == "PASS" and cmds[0]["parameters"]["target_player_id"] == 4, cmds
+    print("=== SHOOT: forward at 43 passes to FWD2 ahead ===")
+
+
 def test_defender_never_shoots():
     s = _state(home={0: (-55, 0), 1: (-30, 0), 2: (-10, 5), 3: (10, -5), 4: (15, 15)},
                away={0: (55, 0), 1: (30, 0), 2: (20, 10), 3: (-20, 0), 4: (-25, -10)}, holder=("home", 1))
